@@ -26,7 +26,10 @@ public class Place
             if (response.IsSuccessStatusCode)
             {
                 string json = await response.Content.ReadAsStringAsync();
-                JsonConvert.PopulateObject(json, this);
+                JsonConvert.PopulateObject(json, this, new JsonSerializerSettings
+                {
+                    StringEscapeHandling = StringEscapeHandling.Default
+                });
             }
             else
             {
