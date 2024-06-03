@@ -5,48 +5,33 @@ using Newtonsoft.Json;
 
 public class Place
 {
-    public int Id { get; set; }
+    public int PlaceId { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string Type { get; set; }
     public string Location { get; set; }
 
-    private static readonly HttpClient client = new HttpClient();
-    private const string functionUrl = "https://functions.yandexcloud.net/d4efabacb9d3f3gupg8i";
-
     public Place(int id)
     {
-        Task.Run(async () => await InitializePlaceAsync(id)).Wait();
+        var task = FetchPlaceAsync(id);
+        task.Wait();
     }
 
-    private async Task InitializePlaceAsync(int id)
+    private async Task FetchPlaceAsync(int id)
     {
-        string requestUrl = $"{functionUrl}?id={id}";
-
-        try
+        using (HttpClient client = new HttpClient())
         {
-            HttpResponseMessage response = await client.GetAsync(requestUrl);
+            HttpResponseMessage response = await client.GetAsync($"https://functions.yandexcloud.net/d4efabacb9d3f3gupg8i?id={id}");
 
             if (response.IsSuccessStatusCode)
             {
-                string responseBody = await response.Content.ReadAsStringAsync();
-
-                var place = JsonConvert.DeserializeObject<Place>(responseBody);
-                this.Id = place.Id;
-                this.Name = place.Name;
-                this.Description = place.Description;
-                this.Type = place.Type;
-                this.Location = place.Location;
+                string json = await response.Content.ReadAsStringAsync();
+                JsonConvert.PopulateObject(json, this);
             }
             else
             {
-                string errorContent = await response.Content.ReadAsStringAsync();;
                 throw new Exception($"Failed to retrieve place with ID {id}: {response.ReasonPhrase}");
             }
-        }
-        catch (HttpRequestException e)
-        {
-            throw new Exception($"Failed to retrieve place with ID {id}: {e.Message}");
         }
     }
 }
