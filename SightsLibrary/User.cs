@@ -60,7 +60,7 @@ public class User
         await using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
         {
-            placeIds.Add(reader.GetInt32(1)); // Предполагается, что place_id находится в первом столбце результата
+            placeIds.Add(reader.GetInt32(0)); // Предполагается, что place_id находится в первом столбце результата
         }
 
         return placeIds;
